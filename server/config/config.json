@@ -1,0 +1,33 @@
+{
+    "CAMERA_IP":"127.0.0.1",
+    "CAMERA_PORT":8080,
+
+    "LIGHT_IP":"127.0.0.1",
+    "LIGHT_PORT":8080,
+
+    "PLC_IP":"127.0.0.1",
+    "PLC_PORT":8081,
+
+    "SIYOSIJI_IP":"192.168.3.10",
+    "SIYOSIJI_PORT":5005,
+
+
+    "LOG_EXE_DIR":"D:/Tire_Spec_Determination/log",
+    "LOG_LEVEL":"DEBUG",
+    
+    "RESULT_OPE_DIR":"D:/Tire_Spec_Determination/result_ope",
+    "RESULT_TRY_DIR":"D:/Tire_Spec_Determination/result_try",
+    "RESULT_TEST_DIR":"D:/Tire_Spec_Determination/result/test",
+
+    "GET_IMG_DIR":"D/",
+    "DATALAKE_DIR":"D/",
+    "DATASET_DIR":"D/",
+
+
+    "AI_MODEL_PATH":"C:/Users/54428/Desktop/Python_project/Tire_Spec_Determination/data/weight/tire_spec_all_020_0.0004.h5",
+
+    "IMG_RESIZE_SET_X":640,
+    "IMG_RESIZE_SET_Y":640,
+
+    "INITIAL_MODE":1
+}
