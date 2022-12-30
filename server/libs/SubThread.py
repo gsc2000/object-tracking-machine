@@ -1,9 +1,9 @@
 import threading
 import ctypes
 
-from . import Utility
+from . import Util
 
-logger = Utility.childLogger(__name__)
+logger = Util.childLogger(__name__)
 
 class SubThread(threading.Thread):
     '''
@@ -13,14 +13,14 @@ class SubThread(threading.Thread):
         super().__init__()
         self.daemon = True
         self.name = name
-    
+
     def run(self):
         '''
         サブスレッドでの処理内容
         try分で処理すること
         '''
         pass
-    
+
     def get_id(self):
         '''
         サブスレッドのIDを取得
@@ -30,7 +30,7 @@ class SubThread(threading.Thread):
         for id, thread in threading._active.items():
             if thread is self:
                 return id
-    
+
     def kill(self):
         '''
         サブスレッド強制終了
@@ -38,7 +38,7 @@ class SubThread(threading.Thread):
         # thread_id = self.get_id()
         resu = ctypes.pythonapi.PyThreadState_SetAsyncExc(self.native_id,
                                                           ctypes.py_object(SystemExit))
-        if resu > 1: 
+        if resu > 1:
             ctypes.pythonapi.PyThreadState_SetAsyncExc(self.native_id, 0)
             logger.info('Failure_in_raising_exception')
 
@@ -47,7 +47,7 @@ class SubThread(threading.Thread):
 #         super().__init__("Monitor")
 #         self.error_q = error_q
 #         self.lock = lock
-    
+
 #     def run(self):
 #         while True:
 #             while not self.error_q.empty():
@@ -69,5 +69,5 @@ def ActiveThread():
     active_thread = []
     for tmp_thread in threading.enumerate():
         active_thread.append(tmp_thread.getName())
-    
+
     return active_thread
