@@ -30,13 +30,14 @@ class cv2graphic(SubThread.SubThread):
         logger.info("Graphic_Thread_Start")
         cv2.namedWindow("Show", cv2.WINDOW_NORMAL)
         while self.running:
+            print(self.show_img)
             cv2.imshow("Show", self.show_img)
 
-            key = cv2.waitKey(1)
+            key = cv2.waitKey(1000)
             if key == ord("q"):
                 self.running = False
 
-            time.sleep(0.1)
+            # time.sleep(0.1)
 
         logger.info("Close")
         cv2.destroyAllWindows()

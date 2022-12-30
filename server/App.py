@@ -40,7 +40,9 @@ def main():
     while running:
         # 画像取得
         # def ~: -> Numpy配列
+        lock.acquire()
         img = cap.shot()
+        lock.release()
 
         # 画像表示
         gui.show_img = img.copy()
