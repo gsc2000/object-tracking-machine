@@ -19,9 +19,10 @@ class cv2graphic(SubThread.SubThread):
     '''
     画面表示
     '''
-    def __init__(self, img_size: tuple, lock:threading.Lock) -> None:
+    def __init__(self, config: tuple, lock:threading.Lock) -> None:
         super().__init__("GUI")
-        self.show_img = np.zeros(img_size, dtype="uint8") # 初期画像
+        self.show_img = np.zeros((config["CAMERA"]["RESIZE_X"], config["CAMERA"]["RESIZE_Y"], 3),
+                                  dtype="uint8") # 初期画像
 
         self.running = True
 
@@ -30,10 +31,10 @@ class cv2graphic(SubThread.SubThread):
         logger.info("Graphic_Thread_Start")
         cv2.namedWindow("Show", cv2.WINDOW_NORMAL)
         while self.running:
-            print(self.show_img)
+            # print(self.show_img.shape)
             cv2.imshow("Show", self.show_img)
 
-            key = cv2.waitKey(1000)
+            key = cv2.waitKey(1)
             if key == ord("q"):
                 self.running = False
 

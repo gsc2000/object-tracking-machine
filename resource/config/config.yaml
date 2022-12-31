@@ -1,0 +1,13 @@
+LOG:
+  DIR: "server/log/"
+  LEVEL: "DEBUG"
+
+CAMERA:
+  ID: 0
+  FPS: 30
+  SIZE_X: 1920
+  SIZE_Y: 1080
+  RESIZE_X: 1920
+  RESIZE_Y: 1080
+
+INIRIAL_MODE: 1

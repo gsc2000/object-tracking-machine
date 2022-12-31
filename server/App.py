@@ -2,12 +2,16 @@
 import os
 import sys
 
+import yaml
+
 import threading
 
 import time
 
 import Graphic
 import GetImage
+import ArtificialIntelligence as ai
+import Control
 import libs.Util as Util
 
 def main():
@@ -16,21 +20,22 @@ def main():
     '''
     # コンフィグ読み込み
     # --------------------------------------------------
-    CONFIG = Util.read_json("server/config/config.json")
+    with open('resource/config/config.yaml') as file:
+        CONFIG = yaml.safe_load(file.read())
 
     # Loggerの設定
     # --------------------------------------------------
-    logger = Util.rootLogger(CONFIG["LOG_DIR"], CONFIG["LOG_LEVEL"])
+    logger = Util.rootLogger(CONFIG["LOG"]["DIR"], CONFIG["LOG"]["LEVEL"])
     logger.info("App_Start")
     logger.debug("Read_Config: {}".format(CONFIG))
 
     # 初期化処理
     # --------------------------------------------------
     lock = threading.Lock() # 排他制御
-    gui = Graphic.cv2graphic((CONFIG["IMG_SIZE_X"], CONFIG["IMG_SIZE_Y"]), lock)
+    gui = Graphic.cv2graphic(CONFIG, lock)
     gui.start()
 
-    cap = GetImage.GetImage(CONFIG["CAMERA_ID"], (CONFIG["RESIZE_SIZE_X"], CONFIG["RESIZE_SIZE_Y"]))
+    cap = GetImage.GetImage(CONFIG)
 
     cnt = 0 # メインループカウント
     running = True # メインループフラグ
@@ -40,9 +45,9 @@ def main():
     while running:
         # 画像取得
         # def ~: -> Numpy配列
-        lock.acquire()
+        # lock.acquire()
         img = cap.shot()
-        lock.release()
+        # lock.release()
 
         # 画像表示
         gui.show_img = img.copy()
@@ -56,7 +61,7 @@ def main():
         if gui.running == False:
             running = False
 
-        time.sleep(1)
+        time.sleep(0.1)
 
     logger.info("App_Close")
 
