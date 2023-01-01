@@ -21,18 +21,27 @@ class cv2graphic(SubThread.SubThread):
     '''
     def __init__(self, config: tuple, lock:threading.Lock) -> None:
         super().__init__("GUI")
-        self.show_img = np.zeros((config["CAMERA"]["RESIZE_X"], config["CAMERA"]["RESIZE_Y"], 3),
+        self.width = config["CAMERA"]["RESIZE_X"]
+        self.hight = config["CAMERA"]["RESIZE_Y"]
+
+        self.show_img = np.zeros((self.width, self.hight, 3),
                                   dtype="uint8") # 初期画像
-        cv2.putText(self.show_img, 'Please Wait', (10, int(config["CAMERA"]["RESIZE_Y"]/2)),
+        cv2.putText(self.show_img, 'Please Wait', (10, int(self.hight/2)),
                     cv2.FONT_HERSHEY_PLAIN, 4, (255, 255, 255), 5,
                     cv2.LINE_AA)
+
+        self.win_name = "Show"
+        self.ini_win_size = 500
 
         self.running = True
 
 
     def run(self):
         logger.info("Graphic_Thread_Start")
-        cv2.namedWindow("Show", cv2.WINDOW_NORMAL)
+        cv2.namedWindow(self.win_name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.win_name, self.ini_win_size, int(self.ini_win_size*self.hight/self.width))
+        # cv2.setWindowProperty(self.win_name, cv2.WND_PROP_ASPECT_RATIO, cv2.WINDOW_KEEPRATIO)
+
         while self.running:
             # print(self.show_img.shape)
             cv2.imshow("Show", self.show_img)
