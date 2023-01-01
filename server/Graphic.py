@@ -31,7 +31,7 @@ class cv2graphic(SubThread.SubThread):
                     cv2.LINE_AA)
 
         self.win_name = "Show"
-        self.ini_win_size = 500
+        self.ini_win_size = config["CAMERA"]["INI_WIN_SIZE"]
 
         self.running = True
 
