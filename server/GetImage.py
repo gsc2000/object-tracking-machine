@@ -32,7 +32,7 @@ class GetImage():
 
         self.resize_size = (config["CAMERA"]["RESIZE_Y"], config["CAMERA"]["RESIZE_X"])
 
-        self.null_img = np.zeros((config["CAMERA"]["RESIZE_X"], config["CAMERA"]["RESIZE_Y"], 3),
+        self.null_img = np.zeros((config["CAMERA"]["RESIZE_Y"], config["CAMERA"]["RESIZE_X"], 3),
                                   dtype="uint8") # 初期画像
 
     def shot(self):

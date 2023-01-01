@@ -24,7 +24,7 @@ class cv2graphic(SubThread.SubThread):
         self.width = config["CAMERA"]["RESIZE_X"]
         self.hight = config["CAMERA"]["RESIZE_Y"]
 
-        self.show_img = np.zeros((self.width, self.hight, 3),
+        self.show_img = np.zeros((self.hight, self.width, 3),
                                   dtype="uint8") # 初期画像
         cv2.putText(self.show_img, 'Please Wait', (10, int(self.hight/2)),
                     cv2.FONT_HERSHEY_PLAIN, 4, (255, 255, 255), 5,
