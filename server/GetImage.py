@@ -30,7 +30,7 @@ class GetImage():
         fps = self.cap.get(cv2.CAP_PROP_FPS)
         logger.info("Camera_Info:\t[fourcc:{} fps:{}　width:{}　height:{}]".format(fourcc, fps, width, height))
 
-        self.resize_size = (config["CAMERA"]["RESIZE_Y"], config["CAMERA"]["RESIZE_X"])
+        self.resize_size = (config["CAMERA"]["RESIZE_X"], config["CAMERA"]["RESIZE_Y"])
 
         self.null_img = np.zeros((config["CAMERA"]["RESIZE_Y"], config["CAMERA"]["RESIZE_X"], 3),
                                   dtype="uint8") # 初期画像
