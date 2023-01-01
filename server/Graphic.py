@@ -23,6 +23,9 @@ class cv2graphic(SubThread.SubThread):
         super().__init__("GUI")
         self.show_img = np.zeros((config["CAMERA"]["RESIZE_X"], config["CAMERA"]["RESIZE_Y"], 3),
                                   dtype="uint8") # 初期画像
+        cv2.putText(self.show_img, 'Please Wait', (10, int(config["CAMERA"]["RESIZE_Y"]/2)),
+                    cv2.FONT_HERSHEY_PLAIN, 4, (255, 255, 255), 5,
+                    cv2.LINE_AA)
 
         self.running = True
 

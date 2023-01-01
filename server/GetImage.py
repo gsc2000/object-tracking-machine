@@ -32,16 +32,19 @@ class GetImage():
 
         self.resize_size = (config["CAMERA"]["RESIZE_Y"], config["CAMERA"]["RESIZE_X"])
 
+        self.null_img = np.zeros((config["CAMERA"]["RESIZE_X"], config["CAMERA"]["RESIZE_Y"], 3),
+                                  dtype="uint8") # 初期画像
+
     def shot(self):
         ret, frame = self.cap.read()
 
         if ret == True:
-            pass
+            img = cv2.resize(frame, self.resize_size)
             # logger.info("Get_Image_Success")
         elif ret == False:
             logger.info("Get_Image_Failure")
+            img = self.null_img
 
-        img = cv2.resize(frame, self.resize_size)
 
         return img
 
