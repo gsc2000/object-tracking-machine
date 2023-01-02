@@ -87,12 +87,51 @@ class Object_detector()
         # 出力結果の事後処理
         return postprocess(pred)
 
-    def preprocess():
-        im = torch.from_numpy(im).to(model.device)
-        im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
-        im /= 255  # 0 - 255 to 0.0 - 1.0
-        if len(im.shape) == 3:
-            im = im[None]  # expand for batch dim
+    def preprocess(img, imgsz, fp16, device):
+        # リサイズ結果を取得
+        img, ratio, padding = letterbox(img, imgsz)
 
-    def postprocess():
-        #Interfaceを合わせる処理を行う
+        # Convert
+        img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        img = np.ascontiguousarray(img)
+        img = torch.from_numpy(img).to(device)
+        img = img.half() if fp16 else img.float()  # uint8 to fp16/32
+        img /= 255  # 0 - 255 to 0.0 - 1.0
+        if len(img.shape) == 3:
+            img = img[None]  # expand for batch dim
+        return img, ratio, padding
+
+
+    def postprocess(pred, ratio: Tuple[float, float], padding: Tuple[float, float], threshold: float, label_list: List[str], max_det) -> List[Dict[str, Any]]:
+        assert ratio != 0.0
+
+        num_detected: int = min(len(pred[0]), max_det)
+
+        if num_detected <= 0:
+            return []
+
+        objects: List[Dict[str, Any]] = []
+        offset_x: int = int(round(padding[0] - 0.1))
+        offset_y: int = int(round(padding[1] - 0.1))
+        for i in range(num_detected):
+            x0: float = (pred[0][i][0].item() - offset_x) / ratio[0]
+            y0: float = (pred[0][i][1].item() - offset_y) / ratio[1]
+            x1: float = (pred[0][i][2].item() - offset_x) / ratio[0]
+            y1: float = (pred[0][i][3].item() - offset_y) / ratio[1]
+            xywh: Tuple[float, float, float, float] = (x0, y0, x1 - x0, y1 - y0)
+            label_index: int = int(pred[0][i][5].item())
+            if label_index < len(label_list):
+                label: str = label_list[label_index]
+            else:
+                # REVEW: label_index >= len(label_list) の場合の処理
+                label: str = ''
+            score: Dict[str, float] = {'confidence': pred[0][i][4].item()}
+
+            objects.append({
+                'label': label,
+                'label_index': label_index,
+                'score': score,
+                'xywh': xywh,
+            })
+
+        return objects
