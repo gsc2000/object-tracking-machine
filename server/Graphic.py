@@ -39,8 +39,8 @@ class cv2graphic(SubThread.SubThread):
     def run(self):
         logger.info("Graphic_Thread_Start")
         cv2.namedWindow(self.win_name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(self.win_name, self.ini_win_size, int(self.ini_win_size*self.hight/self.width))
-        # cv2.setWindowProperty(self.win_name, cv2.WND_PROP_ASPECT_RATIO, cv2.WINDOW_KEEPRATIO)
+        # cv2.resizeWindow(self.win_name, self.ini_win_size, int(self.ini_win_size*self.hight/self.width))
+        cv2.setWindowProperty(self.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
         while self.running:
             # print(self.show_img.shape)
