@@ -76,5 +76,23 @@ class Object_detector()
             dnn=False,  # use OpenCV DNN for ONNX inference
             vid_stride=1,  # video frame-rate stride
     ):
+        #入力データの前処理
+        im = preprocess(im)
         #モデルのインスタンス化
         model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
+        # Inference
+        pred = model(im, augment=augment, visualize=visualize)
+        # NMS
+        pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
+        # 出力結果の事後処理
+        return postprocess(pred)
+
+    def preprocess():
+        im = torch.from_numpy(im).to(model.device)
+        im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
+        im /= 255  # 0 - 255 to 0.0 - 1.0
+        if len(im.shape) == 3:
+            im = im[None]  # expand for batch dim
+
+    def postprocess():
+        #Interfaceを合わせる処理を行う
