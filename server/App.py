@@ -33,7 +33,7 @@ def main():
     # --------------------------------------------------
     lock = threading.Lock() # 排他制御
     gui = Graphic.cv2graphic(CONFIG, lock)
-    gui.start()
+    # gui.start()
 
     cap = GetImage.GetImage(CONFIG)
 
@@ -49,6 +49,11 @@ def main():
         img = cap.shot()
         # lock.release()
 
+        # 推論
+        detection = ai.Object_detector()
+        result = detection.detect(img=img)
+        print(result)
+
         # 画像表示
         gui.show_img = img.copy()
 
@@ -61,7 +66,7 @@ def main():
         if gui.running == False:
             running = False
 
-        time.sleep(0.1)
+        time.sleep(1)
 
     logger.info("App_Close")
 

@@ -25,13 +25,13 @@ from IPython.display import display
 from PIL import Image
 from torch.cuda import amp
 
-from utils import TryExcept
-from utils.dataloaders import exif_transpose, letterbox
-from utils.general import (LOGGER, ROOT, Profile, check_requirements, check_suffix, check_version, colorstr,
+from yolov5_module.utils import TryExcept
+from yolov5_module.utils.dataloaders import exif_transpose, letterbox
+from yolov5_module.utils.general import (LOGGER, ROOT, Profile, check_requirements, check_suffix, check_version, colorstr,
                            increment_path, is_notebook, make_divisible, non_max_suppression, scale_boxes, xywh2xyxy,
                            xyxy2xywh, yaml_load)
-from utils.plots import Annotator, colors, save_one_box
-from utils.torch_utils import copy_attr, smart_inference_mode
+from yolov5_module.utils.plots import Annotator, colors, save_one_box
+from yolov5_module.utils.torch_utils import copy_attr, smart_inference_mode
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
