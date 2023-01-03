@@ -43,7 +43,7 @@ class cv2graphic():
         # GUIウィンドウの表示
         cv2.namedWindow(self.win_name, cv2.WINDOW_NORMAL)
         # cv2.resizeWindow(self.win_name, self.ini_win_size, int(self.ini_win_size*self.hight/self.width))
-        cv2.setWindowProperty(self.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        # cv2.setWindowProperty(self.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
         cv2.imshow(self.win_name, self.show_img) # 初期画像の表示
 
         # サブスレッド作成・開始

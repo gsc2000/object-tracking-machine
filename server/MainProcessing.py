@@ -9,6 +9,8 @@ import Graphic
 import libs.Util as Util
 import libs.SubThread as SubThread
 
+import ArtificialIntelligence
+
 # loggerの設定
 logger = Util.childLogger("MainProcess")
 
@@ -30,7 +32,7 @@ class MainProcessing(SubThread.SubThread):
 
         # ArtificialIntelligence.py内のクラス AI処理用
         # 下記はイメージ
-        # self.ai = ArtificialIntelligence.yolo(config)
+        self.ai = ArtificialIntelligence.Object_detector()
 
         # Control.py内のクラス モータコントロール用
         # 下記はイメージ
@@ -49,7 +51,7 @@ class MainProcessing(SubThread.SubThread):
             # YOLOの制御を書く
             # logger.debug("YOLO")
             # def ~ -> dict
-            # pred = self.ai.detect(img)
+            pred = self.ai.detect(img=img)
 
             # predの結果から人を囲っている画像を作成
             # YOLOのライブラリでできる気がしたけど要確認

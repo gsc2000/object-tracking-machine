@@ -33,6 +33,7 @@ import os
 import platform
 import sys
 from pathlib import Path
+import numpy as np
 
 import torch
 
@@ -42,12 +43,16 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
+# from yolov5_module.models.common import DetectMultiBackend
+# from yolov5_module.utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages, LoadScreenshots, LoadStreams
+# from yolov5_module.utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
+#                            increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh)
+# from yolov5_module.utils.plots import Annotator, colors, save_one_box
+# from yolov5_module.utils.torch_utils import select_device, smart_inference_mode
+
+from yolov5_module.utils.augmentations import letterbox
+from yolov5_module.utils.general import non_max_suppression, xyxy2xywh
 from yolov5_module.models.common import DetectMultiBackend
-from yolov5_module.utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages, LoadScreenshots, LoadStreams
-from yolov5_module.utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
-                           increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh)
-from yolov5_module.utils.plots import Annotator, colors, save_one_box
-from yolov5_module.utils.torch_utils import select_device, smart_inference_mode
 
 class Object_detector():
     '''
@@ -62,9 +67,9 @@ class Object_detector():
             data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
             img = None,
             imgsz=(640, 640),  # inference size (height, width)
-            conf_thres=0.25,  # confidence threshold
+            conf_thres=0.0000001,  # confidence threshold
             iou_thres=0.45,  # NMS IOU threshold
-            max_det=1000,  # maximum detections per image
+            max_det=10,  # maximum detections per image
             device='cpu',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
             view_img=False,  # show results
             save_txt=False,  # save results to *.txt
@@ -87,13 +92,14 @@ class Object_detector():
             vid_stride=1,  # video frame-rate stride
             ):
         #入力データの前処理
-        img = preprocess(img, imgsz, fp16, device)
+        img, ratio, padding = preprocess(img, imgsz, False, device)
         #モデルのインスタンス化
         model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
         # Inference
         pred = model(img, augment=augment, visualize=visualize)
         # NMS
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
+        print(pred)
         # 出力結果の事後処理
         # return postprocess(pred)
         return 0
@@ -101,7 +107,6 @@ class Object_detector():
 def preprocess(img, imgsz, fp16=False, device='cpu'):
     # リサイズ結果を取得
     img, ratio, padding = letterbox(img, imgsz)
-
     # Convert
     img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
     img = np.ascontiguousarray(img)
