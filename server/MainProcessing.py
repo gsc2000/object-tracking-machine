@@ -3,6 +3,7 @@ import sys
 
 import time
 import threading
+import cv2
 
 import GetImage
 import Graphic
@@ -38,11 +39,12 @@ class MainProcessing(SubThread.SubThread):
         # 下記はイメージ
         # self.control = Control.control(config)
 
-        logger.info("MainProcess_Thread_Start")
+        # logger.info("MainProcess_Thread_Start")
 
     def run(self):
         logger.info("MainProcess_Process_Start")
         while self.running:
+            st_time = time.time()
             # 画像取得
             # def ~: -> Numpy配列
             # logger.debug("Image_Get")
@@ -56,10 +58,6 @@ class MainProcessing(SubThread.SubThread):
             # predの結果から人を囲っている画像を作成
             # YOLOのライブラリでできる気がしたけど要確認
             # logger.debug("Detect_image_create")
-            # 下記はイメージ
-            # detect_img = img.copy() # とりあえず。ほんとはなんかのメソッドの戻り値を格納
-            # GUI表示画像書き換え
-            self.ui.show_img = pred_img
 
             # モータ制御を書く
             # logger.debug("Motor_Control")
@@ -73,7 +71,15 @@ class MainProcessing(SubThread.SubThread):
                 self.close()
                 logger.info("MainProcess_Thread_End")
 
-            time.sleep(0.1) # とりあえず記載
+            # time.sleep(0.1) # とりあえず記載
+            lap_time = time.time()-st_time
+            # logger.info("Lap_Time:\t{}".format(lap_time))
+            # GUI表示画像書き換え
+            self.ui.show_img = pred_img
+            cv2.putText(self.ui.show_img, "LAP_TIME:{:.2f}".format(lap_time),
+                        (10, 50),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 1,
+                        cv2.LINE_AA)
 
         # self.lock.release()
 
