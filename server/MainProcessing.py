@@ -51,15 +51,15 @@ class MainProcessing(SubThread.SubThread):
             # YOLOの制御を書く
             # logger.debug("YOLO")
             # def ~ -> dict
-            pred = self.ai.detect(img=img)
+            pred_img = self.ai.detect(img=img)
 
             # predの結果から人を囲っている画像を作成
             # YOLOのライブラリでできる気がしたけど要確認
             # logger.debug("Detect_image_create")
             # 下記はイメージ
-            detect_img = img.copy() # とりあえず。ほんとはなんかのメソッドの戻り値を格納
+            # detect_img = img.copy() # とりあえず。ほんとはなんかのメソッドの戻り値を格納
             # GUI表示画像書き換え
-            self.ui.show_img = detect_img
+            self.ui.show_img = pred_img
 
             # モータ制御を書く
             # logger.debug("Motor_Control")

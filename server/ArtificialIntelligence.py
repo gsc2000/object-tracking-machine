@@ -51,7 +51,8 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 # from yolov5_module.utils.torch_utils import select_device, smart_inference_mode
 
 from yolov5_module.utils.augmentations import letterbox
-from yolov5_module.utils.general import non_max_suppression, xyxy2xywh
+from yolov5_module.utils.general import non_max_suppression, xyxy2xywh, scale_boxes
+from yolov5_module.utils.plots import Annotator, colors, save_one_box
 from yolov5_module.models.common import DetectMultiBackend
 
 class Object_detector():
@@ -92,9 +93,11 @@ class Object_detector():
             vid_stride=1,  # video frame-rate stride
             ):
         #入力データの前処理
+        im0 = img.copy()
         img, ratio, padding = preprocess(img, imgsz, False, device)
         #モデルのインスタンス化
         model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
+        stride, names, pt = model.stride, model.names, model.pt
         # Inference
         pred = model(img, augment=augment, visualize=visualize)
         # NMS
@@ -102,7 +105,47 @@ class Object_detector():
         print(pred)
         # 出力結果の事後処理
         # return postprocess(pred)
-        return 0
+
+        # GUI表示用画像作成
+        for i, det in enumerate(pred):  # per image
+            # seen += 1
+            gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+            annotator = Annotator(im0, line_width=line_thickness, example=str(names))
+            if len(det):
+                # Rescale boxes from img_size to im0 size
+                det[:, :4] = scale_boxes(img.shape[2:], det[:, :4], im0.shape).round()
+
+                # Print results
+                # for c in det[:, 5].unique():
+                #     n = (det[:, 5] == c).sum()  # detections per class
+                    # s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+
+                # Write results
+                for *xyxy, conf, cls in reversed(det):
+                    if save_txt:  # Write to file
+                        xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+                        line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
+                        # with open(f'{txt_path}.txt', 'a') as f:
+                        #     f.write(('%g ' * len(line)).rstrip() % line + '\n')
+
+                    # if save_img or save_crop or view_img:  # Add bbox to image
+                    c = int(cls)  # integer class
+                    label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+                    annotator.box_label(xyxy, label, color=colors(c, True))
+                    # if save_crop:
+                    #     save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+
+            # Stream results
+            im0 = annotator.result()
+            # if view_img:
+            #     if platform.system() == 'Linux' and p not in windows:
+            #         windows.append(p)
+            #         cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
+            #         cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
+            #     cv2.imshow(str(p), im0)
+            #     cv2.waitKey(1)  # 1 millisecond
+
+        return im0
 
 def preprocess(img, imgsz, fp16=False, device='cpu'):
     # リサイズ結果を取得
