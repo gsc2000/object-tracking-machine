@@ -59,47 +59,49 @@ class Object_detector():
     '''
     Yoloで推論
     '''
-    # def __init__(self):
+    def __init__(self,
+                 weights=ROOT / 'yolov5s.pt',  # model path or triton URL) -> None:
+                 data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
+                 device='cpu',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
+                 dnn=False,  # use OpenCV DNN for ONNX inference
+                 half=False,  # use FP16 half-precision inference
+    ):
+        self.device = device
+        #モデルのインスタンス化
+        self.model = DetectMultiBackend(weights, device=self.device, dnn=dnn, data=data, fp16=half)
+        self.stride, self.names, self.pt = self.model.stride, self.model.names, self.model.pt
 
-    def detect(
-            self,
-            weights=ROOT / 'yolov5s.pt',  # model path or triton URL
-            source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
-            data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
-            img = None,
-            imgsz=(640, 640),  # inference size (height, width)
-            conf_thres=0.0000001,  # confidence threshold
-            iou_thres=0.45,  # NMS IOU threshold
-            max_det=10,  # maximum detections per image
-            device='cpu',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
-            view_img=False,  # show results
-            save_txt=False,  # save results to *.txt
-            save_conf=False,  # save confidences in --save-txt labels
-            save_crop=False,  # save cropped prediction boxes
-            nosave=False,  # do not save images/videos
-            classes=None,  # filter by class: --class 0, or --class 0 2 3
-            agnostic_nms=False,  # class-agnostic NMS
-            augment=False,  # augmented inference
-            visualize=False,  # visualize features
-            update=False,  # update all models
-            project=ROOT / 'runs/detect',  # save results to project/name
-            name='exp',  # save results to project/name
-            exist_ok=False,  # existing project/name ok, do not increment
-            line_thickness=3,  # bounding box thickness (pixels)
-            hide_labels=False,  # hide labels
-            hide_conf=False,  # hide confidences
-            half=False,  # use FP16 half-precision inference
-            dnn=False,  # use OpenCV DNN for ONNX inference
-            vid_stride=1,  # video frame-rate stride
+    def detect(self,
+               source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
+               img = None,
+               imgsz=(640, 640),  # inference size (height, width)
+               conf_thres=0.25,  # confidence threshold
+               iou_thres=0.45,  # NMS IOU threshold
+               max_det=10,  # maximum detections per image
+               view_img=False,  # show results
+               save_txt=False,  # save results to *.txt
+               save_conf=False,  # save confidences in --save-txt labels
+               save_crop=False,  # save cropped prediction boxes
+               nosave=False,  # do not save images/videos
+               classes=None,  # filter by class: --class 0, or --class 0 2 3
+               agnostic_nms=False,  # class-agnostic NMS
+               augment=False,  # augmented inference
+               visualize=False,  # visualize features
+               update=False,  # update all models
+               project=ROOT / 'runs/detect',  # save results to project/name
+               name='exp',  # save results to project/name
+               exist_ok=False,  # existing project/name ok, do not increment
+               line_thickness=3,  # bounding box thickness (pixels)
+               hide_labels=False,  # hide labels
+               hide_conf=False,  # hide confidences
+               vid_stride=1,  # video frame-rate stride
             ):
         #入力データの前処理
         im0 = img.copy()
-        img, ratio, padding = preprocess(img, imgsz, False, device)
-        #モデルのインスタンス化
-        model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
-        stride, names, pt = model.stride, model.names, model.pt
+        img, ratio, padding = preprocess(img, imgsz, False, self.device)
+
         # Inference
-        pred = model(img, augment=augment, visualize=visualize)
+        pred = self.model(img, augment=augment, visualize=visualize)
         # NMS
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
         print(pred)
@@ -110,7 +112,7 @@ class Object_detector():
         for i, det in enumerate(pred):  # per image
             # seen += 1
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
-            annotator = Annotator(im0, line_width=line_thickness, example=str(names))
+            annotator = Annotator(im0, line_width=line_thickness, example=str(self.names))
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_boxes(img.shape[2:], det[:, :4], im0.shape).round()
@@ -130,7 +132,7 @@ class Object_detector():
 
                     # if save_img or save_crop or view_img:  # Add bbox to image
                     c = int(cls)  # integer class
-                    label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+                    label = None if hide_labels else (self.names[c] if hide_conf else f'{self.names[c]} {conf:.2f}')
                     annotator.box_label(xyxy, label, color=colors(c, True))
                     # if save_crop:
                     #     save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)

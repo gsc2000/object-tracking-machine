@@ -51,7 +51,7 @@ class MainProcessing(SubThread.SubThread):
             # YOLOの制御を書く
             # logger.debug("YOLO")
             # def ~ -> dict
-            pred_img = self.ai.detect(img=img)
+            pred_img = self.ai.detect(img=img, conf_thres=0.4)
 
             # predの結果から人を囲っている画像を作成
             # YOLOのライブラリでできる気がしたけど要確認
