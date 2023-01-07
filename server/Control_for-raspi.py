@@ -1,6 +1,6 @@
 # 制御関係
 import time
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 
 class control():
@@ -9,12 +9,12 @@ class control():
         self.target = int(self.resize_size) / 2
         self.range = 60
 
-        # #GPIOの初期設定
-        # GPIO.setmode(GPIO.BCM)
-        # GPIO.setup(4, GPIO.OUT)
-        # p = GPIO.PWM(4, 50) #GPIO4をPWM設定、周波数は50Hz
-        # p.start(0.0) #Duty Cycle 0%
-        # p.ChangeDutyCycle(12) #初期degree=90[°]
+        #GPIOの初期設定
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(4, GPIO.OUT)
+        p = GPIO.PWM(4, 50) #GPIO4をPWM設定、周波数は50Hz
+        p.start(0.0) #Duty Cycle 0%
+        p.ChangeDutyCycle(12) #初期degree=90[°]
 
     def run(self, center_pix, num_human_det):
         '''
@@ -27,6 +27,6 @@ class control():
             degree += 90 # 0-180に変換
             dc = 2.5 + (12.0-2.5)/180*(degree+90) #角度をDutyCycleに変換
         #DutyCycle dc%
-        # p.ChangeDutyCycle(dc)
-        print(degree, dc)
+        p.ChangeDutyCycle(dc)
+        print(dc)
         return dc

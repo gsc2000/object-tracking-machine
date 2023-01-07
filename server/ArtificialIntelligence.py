@@ -43,13 +43,6 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
-# from yolov5_module.models.common import DetectMultiBackend
-# from yolov5_module.utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages, LoadScreenshots, LoadStreams
-# from yolov5_module.utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
-#                            increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh)
-# from yolov5_module.utils.plots import Annotator, colors, save_one_box
-# from yolov5_module.utils.torch_utils import select_device, smart_inference_mode
-
 from yolov5_module.utils.augmentations import letterbox
 from yolov5_module.utils.general import non_max_suppression, xyxy2xywh, scale_boxes
 from yolov5_module.utils.plots import Annotator, colors, save_one_box
@@ -106,7 +99,7 @@ class Object_detector():
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
         print(pred)
         # 出力結果の事後処理
-        # return postprocess(pred)
+        center_pix, num_human_det = postprocess(pred, ratio, max_det)
 
         # GUI表示用画像作成
         for i, det in enumerate(pred):  # per image
@@ -146,8 +139,7 @@ class Object_detector():
             #         cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
             #     cv2.imshow(str(p), im0)
             #     cv2.waitKey(1)  # 1 millisecond
-
-        return im0
+        return im0, center_pix, num_human_det
 
 def preprocess(img, imgsz, fp16=False, device='cpu'):
     # リサイズ結果を取得
@@ -160,39 +152,24 @@ def preprocess(img, imgsz, fp16=False, device='cpu'):
     img /= 255  # 0 - 255 to 0.0 - 1.0
     if len(img.shape) == 3:
         img = img[None]  # expand for batch dim
-    return img, ratio, padding
+    return img, ratio, padding,
 
 
-    # def postprocess(pred, ratio: Tuple[float, float], padding: Tuple[float, float], threshold: float, label_list: List[str], max_det) -> List[Dict[str, Any]]:
-    #     # assert ratio != 0.0
-    #
-    #     num_detected: int = min(len(pred[0]), max_det)
-    #
-    #     if num_detected <= 0:
-    #         return []
-    #
-    #     objects: List[Dict[str, Any]] = []
-    #     offset_x: int = int(round(padding[0] - 0.1))
-    #     offset_y: int = int(round(padding[1] - 0.1))
-    #     for i in range(num_detected):
-    #         x0: float = (pred[0][i][0].item() - offset_x) / ratio[0]
-    #         y0: float = (pred[0][i][1].item() - offset_y) / ratio[1]
-    #         x1: float = (pred[0][i][2].item() - offset_x) / ratio[0]
-    #         y1: float = (pred[0][i][3].item() - offset_y) / ratio[1]
-    #         xywh: Tuple[float, float, float, float] = (x0, y0, x1 - x0, y1 - y0)
-    #         label_index: int = int(pred[0][i][5].item())
-    #         if label_index < len(label_list):
-    #             label: str = label_list[label_index]
-    #         else:
-    #             # REVEW: label_index >= len(label_list) の場合の処理
-    #             label: str = ''
-    #         score: Dict[str, float] = {'confidence': pred[0][i][4].item()}
-    #
-    #         objects.append({
-    #             'label': label,
-    #             'label_index': label_index,
-    #             'score': score,
-    #             'xywh': xywh,
-    #         })
-    #
-    #     return objects
+def postprocess(pred, ratio, max_det):
+    # assert ratio != 0.0
+    center_pix = []
+    num_detected: int = min(len(pred[0]), max_det)
+    num_human_det = 0
+
+    if num_detected <= 0:
+        return center_pix, num_human_det
+
+    for i in range(num_detected):
+        if int(pred[0][i][5].item()) == 0:
+            num_human_det += 1
+            x1: float = pred[0][i][0].item() / ratio[0]
+            # y0: float = (pred[0][i][1].item() - offset_y) / ratio[1]
+            x2: float = pred[0][i][2].item() / ratio[0]
+            # y1: float = (pred[0][i][3].item() - offset_y) / ratio[1]
+            center_pix.append((x1 + x2)/2)
+    return center_pix, num_human_det

@@ -11,6 +11,7 @@ import libs.Util as Util
 import libs.SubThread as SubThread
 
 import ArtificialIntelligence
+import Control
 
 # loggerの設定
 logger = Util.childLogger("MainProcess")
@@ -37,7 +38,7 @@ class MainProcessing(SubThread.SubThread):
 
         # Control.py内のクラス モータコントロール用
         # 下記はイメージ
-        # self.control = Control.control(config)
+        self.control = Control.control(config)
 
         # logger.info("MainProcess_Thread_Start")
 
@@ -53,7 +54,7 @@ class MainProcessing(SubThread.SubThread):
             # YOLOの制御を書く
             # logger.debug("YOLO")
             # def ~ -> dict
-            pred_img = self.ai.detect(img=img, conf_thres=0.4)
+            pred_img, center_pix, num_human_det = self.ai.detect(img=img, conf_thres=0.4)
 
             # predの結果から人を囲っている画像を作成
             # YOLOのライブラリでできる気がしたけど要確認
@@ -61,8 +62,7 @@ class MainProcessing(SubThread.SubThread):
 
             # モータ制御を書く
             # logger.debug("Motor_Control")
-            # 下記はイメージ
-            # self.control.run() モータが動く
+            self.control.run(center_pix, num_human_det)
 
             self.cnt += 1 # 処理回数カウントUP 何かに使いそう
 
