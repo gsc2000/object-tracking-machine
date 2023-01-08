@@ -12,6 +12,7 @@ import libs.SubThread as SubThread
 
 import ArtificialIntelligence
 import Control
+import Bluetooth
 
 # loggerの設定
 logger = Util.childLogger("MainProcess")
@@ -40,6 +41,9 @@ class MainProcessing(SubThread.SubThread):
         # 下記はイメージ
         self.control = Control.control(config)
 
+        # Bluetooth.py内のクラス　ラズパイ通信用
+        self.bluetooth = Bluetooth.bluetooth()
+
         # logger.info("MainProcess_Thread_Start")
 
     def run(self):
@@ -62,7 +66,10 @@ class MainProcessing(SubThread.SubThread):
 
             # モータ制御を書く
             # logger.debug("Motor_Control")
-            self.control.run(center_pix, num_human_det)
+            dc = self.control.run(center_pix, num_human_det)
+
+            # ラズパイにbluetoothでduty比を送信する
+            self.bluetooth.send(dc)
 
             self.cnt += 1 # 処理回数カウントUP 何かに使いそう
 
