@@ -54,7 +54,10 @@ class MainProcessing(SubThread.SubThread):
             # YOLOの制御を書く
             # logger.debug("YOLO")
             # def ~ -> dict
+            yolo_time = time.time()
             pred_img, center_pix, num_human_det = self.ai.detect(img=img, conf_thres=0.4)
+            yolo_fps = 1/time.time()-yolo_time
+            logger.debug("YOLO_Time:{}".format(yolo_fps))
 
             # predの結果から人を囲っている画像を作成
             # YOLOのライブラリでできる気がしたけど要確認
@@ -73,11 +76,12 @@ class MainProcessing(SubThread.SubThread):
 
             # time.sleep(0.1) # とりあえず記載
             lap_time = time.time()-st_time
-            # logger.info("Lap_Time:\t{}".format(lap_time))
+            fps = 1/lap_time
+            logger.info("Lap_Time:\t{}".format(fps))
             # GUI表示画像書き換え
             self.ui.show_img = pred_img
-            cv2.putText(self.ui.show_img, "LAP_TIME:{:.2f}".format(lap_time),
-                        (10, 50),
+            cv2.putText(self.ui.show_img, "FPS:{:.2f}".format(fps),
+                        (10, 25),
                         cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 1,
                         cv2.LINE_AA)
 

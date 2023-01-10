@@ -53,7 +53,7 @@ class Object_detector():
     Yoloで推論
     '''
     def __init__(self,
-                 weights=ROOT / 'yolov5s.pt',  # model path or triton URL) -> None:
+                 weights=ROOT / 'yolov5n.pt',  # model path or triton URL) -> None:
                  data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
                  device='cpu',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
                  dnn=False,  # use OpenCV DNN for ONNX inference
@@ -67,10 +67,10 @@ class Object_detector():
     def detect(self,
                source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
                img = None,
-               imgsz=(160, 160),  # inference size (height, width)
+               imgsz=(128, 128),  # inference size (height, width)
                conf_thres=0.25,  # confidence threshold
                iou_thres=0.45,  # NMS IOU threshold
-               max_det=10,  # maximum detections per image
+               max_det=5,  # maximum detections per image
                view_img=False,  # show results
                save_txt=False,  # save results to *.txt
                save_conf=False,  # save confidences in --save-txt labels
@@ -97,7 +97,7 @@ class Object_detector():
         pred = self.model(img, augment=augment, visualize=visualize)
         # NMS
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
-        print(pred)
+        # print(pred)
         # 出力結果の事後処理
         center_pix, num_human_det = postprocess(pred, ratio, max_det)
 

@@ -62,7 +62,7 @@ class cv2graphic():
             # print(self.show_img.shape)
             # logger.debug("Show_image")
             cv2.imshow(self.win_name, self.show_img)
-            key = cv2.waitKey(100) # 0.1秒ごとに画面更新
+            key = cv2.waitKey(10) # 0.1秒ごとに画面更新
             if key == ord("q"): # キーボードのQが押されたら終了
                 self.thread.running = False # サブスレッドを停止させる
                 self.running = False
