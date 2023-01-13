@@ -42,7 +42,7 @@ class MainProcessing(SubThread.SubThread):
         self.control = Control.control(config)
 
         # Bluetooth.py内のクラス　ラズパイ通信用
-        self.bluetooth = Bluetooth.bluetooth()
+        # self.bluetooth = Bluetooth.bluetooth()
 
         # logger.info("MainProcess_Thread_Start")
 
@@ -66,10 +66,11 @@ class MainProcessing(SubThread.SubThread):
 
             # モータ制御を書く
             # logger.debug("Motor_Control")
-            dc = self.control.run(center_pix, num_human_det)
+            if self.cnt % 10 == 0: #10回ごとにモーター制御を入れる
+                dc = self.control.run(center_pix, num_human_det)
 
             # ラズパイにbluetoothでduty比を送信する
-            self.bluetooth.send(dc)
+            # self.bluetooth.send(dc)
 
             self.cnt += 1 # 処理回数カウントUP 何かに使いそう
 

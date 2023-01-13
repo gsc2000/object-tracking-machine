@@ -22,10 +22,9 @@ class control():
         '''
         if num_human_det <= 0:
             return center_pix, num_human_det
-        for i in range(num_human_det):
-            degree = int((self.target-center_pix[i])/self.target*self.range) # +:反時計回り　-:時計回り
-            degree += 90 # 0-180に変換
-            dc = 2.5 + (12.0-2.5)/180*(degree+90) #角度をDutyCycleに変換
+        degree = int((self.target-center_pix[i])/self.target*self.range) # +:反時計回り　-:時計回り
+        degree += 90 # 0-180に変換
+        dc = 2.5 + (12.0-2.5)/180*(degree+90) #角度をDutyCycleに変換
         #DutyCycle dc%
         # p.ChangeDutyCycle(dc)
         print(degree, dc)
