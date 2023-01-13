@@ -69,7 +69,7 @@ class MainProcessing(SubThread.SubThread):
 
             # モータ制御を書く
             # logger.debug("Motor_Control")
-            if self.cnt % 10 == 0: #10回ごとにモーター制御を入れる
+            if self.cnt % 5 == 0: #10回ごとにモーター制御を入れる
                 dc = self.control.run(center_pix, num_human_det)
 
             # ラズパイにbluetoothでduty比を送信する
