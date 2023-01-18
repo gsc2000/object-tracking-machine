@@ -68,7 +68,7 @@ class Object_detector():
                source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
                img = None,
                imgsz=(128, 128),  # inference size (height, width)
-               conf_thres=0.25,  # confidence threshold
+               conf_thres=0.45,  # confidence threshold
                iou_thres=0.45,  # NMS IOU threshold
                max_det=5,  # maximum detections per image
                view_img=False,  # show results
@@ -99,47 +99,23 @@ class Object_detector():
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
         # print(pred)
         # 出力結果の事後処理
-        center_pix, num_human_det = postprocess(pred, ratio, max_det)
+        center_pix, num_human_det, center_obj = postprocess(pred, ratio, max_det)
 
         # GUI表示用画像作成
         for i, det in enumerate(pred):  # per image
-            # seen += 1
-            gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             annotator = Annotator(im0, line_width=line_thickness, example=str(self.names))
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_boxes(img.shape[2:], det[:, :4], im0.shape).round()
 
-                # Print results
-                # for c in det[:, 5].unique():
-                #     n = (det[:, 5] == c).sum()  # detections per class
-                    # s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-
-                # Write results
                 for *xyxy, conf, cls in reversed(det):
-                    if save_txt:  # Write to file
-                        xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
-                        # with open(f'{txt_path}.txt', 'a') as f:
-                        #     f.write(('%g ' * len(line)).rstrip() % line + '\n')
-
-                    # if save_img or save_crop or view_img:  # Add bbox to image
                     c = int(cls)  # integer class
                     label = None if hide_labels else (self.names[c] if hide_conf else f'{self.names[c]} {conf:.2f}')
                     annotator.box_label(xyxy, label, color=colors(c, True))
-                    # if save_crop:
-                    #     save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
-            # Stream results
             im0 = annotator.result()
-            # if view_img:
-            #     if platform.system() == 'Linux' and p not in windows:
-            #         windows.append(p)
-            #         cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            #         cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
-            #     cv2.imshow(str(p), im0)
-            #     cv2.waitKey(1)  # 1 millisecond
-        return im0, center_pix, num_human_det
+
+        return im0, center_pix, num_human_det, center_obj
 
 def preprocess(img, imgsz, fp16=False, device='cpu'):
     # リサイズ結果を取得
@@ -158,11 +134,12 @@ def preprocess(img, imgsz, fp16=False, device='cpu'):
 def postprocess(pred, ratio, max_det):
     # assert ratio != 0.0
     center_pix = []
+    center_obj = []
     num_detected: int = min(len(pred[0]), max_det)
     num_human_det = 0
 
     if num_detected <= 0:
-        return center_pix, num_human_det
+        return center_pix, num_human_det, center_obj
 
     for i in range(num_detected):
         if int(pred[0][i][5].item()) == 0:
@@ -172,4 +149,10 @@ def postprocess(pred, ratio, max_det):
             x2: float = pred[0][i][2].item() / ratio[0]
             # y1: float = (pred[0][i][3].item() - offset_y) / ratio[1]
             center_pix.append((x1 + x2)/2)
-    return center_pix, num_human_det
+        elif int(pred[0][i][5].item()) != 0:
+            x1: float = pred[0][i][0].item() / ratio[0]
+            # y0: float = (pred[0][i][1].item() - offset_y) / ratio[1]
+            x2: float = pred[0][i][2].item() / ratio[0]
+            # y1: float = (pred[0][i][3].item() - offset_y) / ratio[1]
+            center_obj.append((x1 + x2)/2)
+    return center_pix, num_human_det, center_obj

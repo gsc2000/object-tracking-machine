@@ -17,6 +17,7 @@ class GetImage():
     '''
     def __init__(self, config: dict) -> None:
         self.cap = cv2.VideoCapture(config["CAMERA"]["ID"])
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
         # self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('Y','U','Y','V'))
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, config["CAMERA"]["SIZE_X"])
@@ -44,7 +45,6 @@ class GetImage():
         elif ret == False:
             logger.info("Get_Image_Failure")
             img = self.null_img
-
 
         return img
 

@@ -3,97 +3,81 @@ import sys
 
 import time
 import threading
-import cv2
+import queue
+# import cv2
 
 import GetImage
-import Graphic
+# import Graphic
 import libs.Util as Util
 import libs.SubThread as SubThread
 
-import ArtificialIntelligence
-import Control
+import Inferencer
+import Control_for_pc as Control
 import Bluetooth
 
 # loggerの設定
 logger = Util.childLogger("MainProcess")
 
 class MainProcessing(SubThread.SubThread):
-    def __init__(self, ui, config, lock: threading.Lock) -> None:
+    def __init__(self, config, q_img: queue.Queue, lock: threading.Lock) -> None:
         super().__init__("MainProcess")
-
-        # 設定の格納
-        self.ui = ui # GUI
-
+        # 各種変数
+        self.mode = None # モード 解錠or設定
+        self.fps = 0 # FPS
+        self.timer = 0 # 中心に物体が存在した時間
+        self.q_img = q_img # メインスレッドへ画像を渡すためのキュー
         self.lock = lock # 排他制御
 
+        self.cnt = 0 # アプリ処理回数
+
+        # 各クラスのインタンス化
+        self.cap = GetImage.GetImage(config) # 画像取得
+        self.ai = Inferencer.Object_detector() # AI処理
+        self.control = Control.control(config) # 駆動制御
+        # self.bluetooth = Bluetooth.bluetooth() # ラズパイ通信用
+
         self.running = True # 処理ループ
-        self.cnt = 0 # 処理回数カウント
-
-        # 各クラスのインタンス化を下記に記載
-        # GetImage.py内のクラス 画像取得用
-        self.cap = GetImage.GetImage(config)
-
-        # ArtificialIntelligence.py内のクラス AI処理用
-        # 下記はイメージ
-        self.ai = ArtificialIntelligence.Object_detector()
-
-        # Control.py内のクラス モータコントロール用
-        # 下記はイメージ
-        self.control = Control.control(config)
-
-        # Bluetooth.py内のクラス　ラズパイ通信用
-        # self.bluetooth = Bluetooth.bluetooth()
-
-        # logger.info("MainProcess_Thread_Start")
 
     def run(self):
         logger.info("MainProcess_Process_Start")
+        set_timer = 0
         while self.running:
             st_time = time.time()
             # 画像取得
-            # def ~: -> Numpy配列
-            # logger.debug("Image_Get")
             img = self.cap.shot()
 
             # YOLOの制御を書く
-            # logger.debug("YOLO")
-            # def ~ -> dict
-            yolo_time = time.time()
-            pred_img, center_pix, num_human_det = self.ai.detect(img=img, conf_thres=0.4)
-            yolo_fps = 1/time.time()-yolo_time
-            logger.debug("YOLO_Time:{}".format(yolo_fps))
+            lap_time = time.time()
+            pred_img, center_pix, num_human_det, center_obj = self.ai.detect(img=img, conf_thres=0.45)
+            # logger.debug("YOLO_FPS:\t{:.2f}".format((time.time()-lap_time)**-1))
 
-            # predの結果から人を囲っている画像を作成
-            # YOLOのライブラリでできる気がしたけど要確認
-            # logger.debug("Detect_image_create")
+            if len(center_obj) != 0 and set_timer == 0:
+                set_timer = time.time()
+            elif len(center_obj) != 0 and set_timer != 0:
+                self.timer = time.time()-set_timer
+                if self.timer >= 3:
+                    logger.info("Set")
+                    # self.set_flg = True
+                    set_timer = 0
+
+            elif len(center_obj) == 0:
+                set_timer = 0
 
             # モータ制御を書く
-            # logger.debug("Motor_Control")
             if self.cnt % 5 == 0: #10回ごとにモーター制御を入れる
                 dc = self.control.run(center_pix, num_human_det)
 
             # ラズパイにbluetoothでduty比を送信する
             # self.bluetooth.send(dc)
 
+            self.fps = (time.time()-st_time)**-1
+            # logger.info("App_FPS:\t{:.2f}".format(self.fps))
+
+            # GUI表示画像書き換え処理
+            self.q_img.put(pred_img)
+
             self.cnt += 1 # 処理回数カウントUP 何かに使いそう
-
-            if self.ui.running == False: # UIで停止処理が実行された場合 メインスレッドが死ぬと止まるのであんまり関係ないかも
-                # self.lock.acquire()
-                self.close()
-                logger.info("MainProcess_Thread_End")
-
-            # time.sleep(0.1) # とりあえず記載
-            lap_time = time.time()-st_time
-            fps = 1/lap_time
-            logger.info("Lap_Time:\t{}".format(fps))
-            # GUI表示画像書き換え
-            self.ui.show_img = pred_img
-            cv2.putText(self.ui.show_img, "FPS:{:.2f}".format(fps),
-                        (10, 25),
-                        cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 1,
-                        cv2.LINE_AA)
-
-        # self.lock.release()
+        logger.info("MainProcess_Thread_End")
 
     def close(self):
         '''
