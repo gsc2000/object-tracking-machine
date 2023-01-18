@@ -12,6 +12,7 @@ sock = bluetooth.BluetoothSocket( bluetooth.RFCOMM )
 
 sock.bind( ( "", port ) )
 sock.listen( 1 )
+sock.settimeout( 5 )
 
 while ( True ):
     try:
@@ -52,6 +53,12 @@ while( True ):
   except KeyboardInterrupt:
     sock.close()
     sock_client.close()
+    break
+
+  except socket.error:
+    sock.close()
+    sock_client.close()
+    print "connection timed out!"
     break
 
   except:
