@@ -1,5 +1,5 @@
 LOG:
-  DIR: "server/log/"
+  DIR: "./log/"
   LEVEL: "DEBUG"
 
 CAMERA:
@@ -10,4 +10,10 @@ CAMERA:
   RESIZE_X: 640
   RESIZE_Y: 480
 
-INIRIAL_MODE: 1
+  FULLSCREEN: False
+
+KEY:
+  PATH: "../resource/key/regi_key.json"
+  NUM: 2
+  COUNT: 3
+  CLASS: "yolov5_module/data/coco128.yaml"

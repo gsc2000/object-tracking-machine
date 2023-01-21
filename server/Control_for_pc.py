@@ -28,5 +28,5 @@ class control():
             dc = 2.5 + (12.0-2.5)/180*(degree+90) #角度をDutyCycleに変換
         #DutyCycle dc%
         # p.ChangeDutyCycle(dc)
-        print(degree, dc)
+        # print(degree, dc)
         return dc

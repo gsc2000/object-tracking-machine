@@ -9,6 +9,10 @@ os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 
 import cv2
 import numpy as np
+import keyboard
+import asyncio
+import json
+import yaml
 
 import threading
 import queue
@@ -23,7 +27,7 @@ class cv2graphic():
     '''
     画面表示
     '''
-    def __init__(self, config: tuple) -> None:
+    def __init__(self, config: dict) -> None:
         '''
         Initialize
         '''
@@ -38,21 +42,34 @@ class cv2graphic():
         self.height = config["CAMERA"]["RESIZE_Y"]
         self.center = (int(self.width/2), int(self.height/2))
 
+        win_size = int(self.height/4)
+
+        # キー関係
+        self.regi_frame = (self.center[0]-win_size, self.center[1]-win_size,
+                           self.center[0]+win_size, self.center[1]+win_size)
+        self.num_key = config["KEY"]["NUM"]
+        # クラス読み込み
+        with open(config["KEY"]["CLASS"], encoding='utf-8') as file:
+            self.classes = yaml.safe_load(file.read())
+        # print(self.classes)
+
         # GUI初期画像の作成
-        self.show_img = np.zeros((self.height, self.width, 3),
-                                  dtype="uint8")
-        cv2.putText(self.show_img, 'Please Wait', (10, int(self.height/2)),
+        self._show_img = np.zeros((self.height, self.width, 3),
+                                   dtype="uint8")
+        cv2.putText(self._show_img, 'Please Wait', (10, int(self.height/2)),
                     cv2.FONT_HERSHEY_PLAIN, 4, (255, 255, 255), 5,
                     cv2.LINE_AA)
 
         # GUIウィンドウの表示
         cv2.namedWindow(self.win_name, cv2.WINDOW_NORMAL)
-        # cv2.setWindowProperty(self.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN) #フルスクリーン表示
-        cv2.imshow(self.win_name, self.show_img) # 初期画像の表示
+        if config["CAMERA"]["FULLSCREEN"]:
+            cv2.setWindowProperty(self.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN) #フルスクリーン表示
+        cv2.imshow(self.win_name, self._show_img) # 初期画像の表示
 
         # サブスレッド作成・開始
         self.lock = threading.Lock() # 排他制御用
-        self.thread = MainProcessing.MainProcessing(config, self.q_img, self.lock)
+        self.thread = MainProcessing.MainProcessing(config, self.regi_frame,
+                                                    self.q_img, self.lock)
         self.thread.start()
 
         logger.info("Active_Thread:\t{}".format(SubThread.ActiveThread()))
@@ -68,72 +85,166 @@ class cv2graphic():
             self.thread.mode = self.mode
 
             # 画像の更新
-            self.updateImg()
+            self.update()
 
             # GUI表示画像の更新
-            cv2.imshow(self.win_name, self.show_img)
-            key = cv2.waitKey(10) # 0.1秒ごとに画面更新
+            cv2.imshow(self.win_name, self._show_img)
+            cv2.waitKey(10) # 0.1秒ごとに画面更新
 
-            if key == 27: # ESCが押されたら終了
-                self.thread.running = False # サブスレッドを停止させる
-                self.running = False
+            if keyboard.is_pressed("shift+s"):
+                self.changeMode()
+                time.sleep(0.5)
+            elif keyboard.is_pressed("esc"):
                 self.close()
-            elif key == ord("s"): # 設定モードに移行
-                self.mode = 1
-            elif key == ord("u"): # 解錠モードに移行
-                self.mode = 0
+                time.sleep(0.5)
 
         logger.info("Graphic_End")
 
-    def updateImg(self):
+    def changeMode(self):
+        now_mode = self.mode
+        if self.mode == 0:
+            self.mode = 1 # 設定モードへ
+        elif self.mode == 1:
+            self.mode = 0 # 解錠モードへ
+
+        logger.info("Mode_Change:\t{}->{}".format(now_mode, self.mode))
+
+
+    def update(self):
+        """
+        表示画像のアップデート
+        """
         try:
-            self.show_img = self.q_img.get(timeout=0.1)
+            self._show_img = self.q_img.get(timeout=0.1)
+            # モードによって変わる部分を表示
             if self.mode == 0:
                 self.unlock()
             elif self.mode == 1:
                 self.setting()
 
-            # FPS表示
-            cv2.putText(self.show_img, "FPS:{:.2f}".format(self.thread.fps),
-                        (self.width-200, 25),
-                        cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 1,
-                        cv2.LINE_AA)
+            # 共通の情報を表示
+            self.fps()
+            self.showMode()
+            self.key_frame()
+
         except queue.Empty as e:
             pass
+
+    def fps(self):
+        """
+        FPSの表示
+        """
+        cv2.putText(img=self._show_img,
+                    text="FPS:{:.2f}".format(self.thread.fps),
+                    org=(self.width-80, 15),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1,
+                    color=(0, 255, 0),
+                    thickness=1,
+                    lineType=cv2.LINE_AA)
+
+    def key_frame(self):
+        """
+        登録枠を表示
+        """
+        cv2.rectangle(img=self._show_img,
+                      pt1=(self.regi_frame[0], self.regi_frame[1]),
+                      pt2=(self.regi_frame[2], self.regi_frame[3]),
+                      color=(255, 255, 255),
+                      thickness=2,
+                      lineType=cv2.LINE_4)
+    def showMode(self):
+        """
+        モードの表示
+        """
+        if self.mode == 0:
+            mode_txt = "UNLOCK"
+        elif self.mode == 1:
+            mode_txt = "SETTING"
+
+        cv2.putText(img=self._show_img,
+                    text="MODE: "+mode_txt,
+                    org=(5, 15),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1,
+                    color=(0, 255, 0),
+                    thickness=1,
+                    lineType=cv2.LINE_AA)
 
     def unlock(self):
         '''
         解錠モードのGUI
         '''
-        cv2.putText(self.show_img, "UNLOCK MODE",
-                    (10, 25),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 255), 2,
-                    cv2.LINE_AA)
+        pass
+
 
     def setting(self):
         '''
         設定モードのGUI
         '''
-        # 現在のモードを表示
-        cv2.putText(self.show_img, "SETTING MODE",
-                    (10, 25),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 255), 2,
-                    cv2.LINE_AA)
         # 説明文を表示
-        cv2.putText(self.show_img, "WAKUNAI",
-                    (10, 50),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 255), 2,
-                    cv2.LINE_AA)
-        # 登録枠を表示
-        win_size = int(self.height/4)
-        cv2.rectangle(self.show_img,
-                      (self.center[0]-win_size, self.center[1]-win_size),
-                      (self.center[0]+win_size, self.center[1]+win_size),
-                      (255, 255, 255), thickness=2, lineType=cv2.LINE_4)
-        cv2.putText(self.show_img, "{:.0f}".format(self.thread.timer),
-                    (self.center[0], self.center[1]),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 255), 2,
-                    cv2.LINE_AA)
+        cv2.putText(img=self._show_img,
+                    text="Put object in the frame",
+                    org=(self.regi_frame[0], self.regi_frame[1]-5),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1,
+                    color=(255, 255, 255),
+                    thickness=1,
+                    lineType=cv2.LINE_AA)
+        # カウンタの表示
+        # print(self.thread.key_status)
+        if self.thread.key_status == 50:
+            text = "Registered!!!"
+            org = (self.center[0]-100, self.center[1])
+            color = (0, 0, 255)
+        elif self.thread.key_status == 2:
+            text = "Register!"
+            org = (self.center[0]-90, self.center[1])
+            color = (0, 255, 0)
+        elif self.thread.key_status == 4:
+            text = "All Register!"
+            org = (self.center[0]-100, self.center[1])
+            color = (0, 255, 0)
+        elif self.thread.key_status == 51:
+            text = "Only One!!!"
+            org = (self.center[0]-90, self.center[1])
+            color = (0, 0, 255)
+        else:
+            text = "{:.0f}".format(self.thread.timer)
+            org = (self.center[0], self.center[1])
+            color = (0, 255, 255)
+        cv2.putText(img=self._show_img,
+                    text=text,
+                    org=org,
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=2,
+                    color=color,
+                    thickness=2,
+                    lineType=cv2.LINE_AA)
+        # 登録されているキー情報
+        top_key = 35
+        for i in range(self.num_key):
+            try:
+                key_idx = self.thread.regi_key["key{}".format(i)]
+            except:
+                break
+            if key_idx == None:
+                regi_class = None
+            else:
+                regi_class = self.classes["names"][key_idx]
+
+            cv2.putText(img=self._show_img,
+                        text="Key: {}".format(regi_class),
+                        org=(5, top_key),
+                        fontFace=cv2.FONT_HERSHEY_PLAIN,
+                        fontScale=1,
+                        color=(0, 255, 0),
+                        thickness=1,
+                        lineType=cv2.LINE_AA)
+            top_key += 15
+
 
     def close(self):
+        self.running = False
         cv2.destroyAllWindows()
+

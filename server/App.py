@@ -3,17 +3,30 @@ import os
 import sys
 
 import yaml
+import argparse
 
 import Graphic
 import libs.Util as Util
+
+def parseArgs() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-c', '--config', type=str,
+                        default='../resource/config/config.yaml')
+
+    args = parser.parse_args()
+    return args
 
 def main():
     '''
     メイン処理
     '''
+    # 引数の取得
+    args = parseArgs()
+
     # コンフィグ読み込み
     # --------------------------------------------------
-    with open('resource/config/config.yaml') as file:
+    with open(args.config) as file:
         CONFIG = yaml.safe_load(file.read())
 
     # Loggerの設定

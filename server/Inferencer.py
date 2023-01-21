@@ -53,7 +53,7 @@ class Object_detector():
     Yoloで推論
     '''
     def __init__(self,
-                 weights=ROOT / 'yolov5n.pt',  # model path or triton URL) -> None:
+                 weights=ROOT / 'yolov5s.pt',  # model path or triton URL) -> None:
                  data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
                  device='cpu',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
                  dnn=False,  # use OpenCV DNN for ONNX inference
@@ -67,7 +67,7 @@ class Object_detector():
     def detect(self,
                source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
                img = None,
-               imgsz=(128, 128),  # inference size (height, width)
+               imgsz=(320, 320),  # inference size (height, width)
                conf_thres=0.45,  # confidence threshold
                iou_thres=0.45,  # NMS IOU threshold
                max_det=5,  # maximum detections per image
@@ -99,7 +99,7 @@ class Object_detector():
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
         # print(pred)
         # 出力結果の事後処理
-        center_pix, num_human_det, center_obj = postprocess(pred, ratio, max_det)
+        center_pix, num_human_det, obj = postprocess(pred, ratio, max_det)
 
         # GUI表示用画像作成
         for i, det in enumerate(pred):  # per image
@@ -115,7 +115,7 @@ class Object_detector():
 
             im0 = annotator.result()
 
-        return im0, center_pix, num_human_det, center_obj
+        return im0, center_pix, num_human_det, obj
 
 def preprocess(img, imgsz, fp16=False, device='cpu'):
     # リサイズ結果を取得
@@ -134,12 +134,12 @@ def preprocess(img, imgsz, fp16=False, device='cpu'):
 def postprocess(pred, ratio, max_det):
     # assert ratio != 0.0
     center_pix = []
-    center_obj = []
+    obj = []
     num_detected: int = min(len(pred[0]), max_det)
     num_human_det = 0
 
     if num_detected <= 0:
-        return center_pix, num_human_det, center_obj
+        return center_pix, num_human_det, obj
 
     for i in range(num_detected):
         if int(pred[0][i][5].item()) == 0:
@@ -150,9 +150,15 @@ def postprocess(pred, ratio, max_det):
             # y1: float = (pred[0][i][3].item() - offset_y) / ratio[1]
             center_pix.append((x1 + x2)/2)
         elif int(pred[0][i][5].item()) != 0:
+            tmp_obj = []
             x1: float = pred[0][i][0].item() / ratio[0]
-            # y0: float = (pred[0][i][1].item() - offset_y) / ratio[1]
+            y1: float = pred[0][i][1].item() / ratio[1]
             x2: float = pred[0][i][2].item() / ratio[0]
-            # y1: float = (pred[0][i][3].item() - offset_y) / ratio[1]
-            center_obj.append((x1 + x2)/2)
-    return center_pix, num_human_det, center_obj
+            y2: float = pred[0][i][3].item() / ratio[1]
+            center_x = int((x1+x2)/2)
+            center_y = int((y1+y2)/2)
+            tmp_obj.append(center_x)
+            tmp_obj.append(center_y)
+            tmp_obj.append(int(pred[0][i][5].item()))
+            obj.append(tmp_obj)
+    return center_pix, num_human_det, obj
