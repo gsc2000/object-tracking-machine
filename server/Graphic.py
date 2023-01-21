@@ -31,7 +31,7 @@ class cv2graphic():
         '''
         Initialize
         '''
-        self.mode = 0 # 初期モード
+        self.mode = None # 初期モード
         # 0:解錠モード
         # 1:設定モード
         self.q_img = queue.Queue() # サブスレッドから画像をもらうためのキュー
@@ -82,7 +82,7 @@ class cv2graphic():
         # --------------------------------------------------
         while self.running:
             # メインプロセスのモード設定
-            self.thread.mode = self.mode
+            self.mode = self.thread.mode
 
             # 画像の更新
             self.update()
@@ -94,6 +94,11 @@ class cv2graphic():
             if keyboard.is_pressed("shift+s"):
                 self.changeMode()
                 time.sleep(0.5)
+            elif keyboard.is_pressed("l"):
+                if self.mode == 0:
+                    # lock
+                    self.thread.lock_io = True
+                    pass
             elif keyboard.is_pressed("esc"):
                 self.close()
                 time.sleep(0.5)
@@ -101,14 +106,13 @@ class cv2graphic():
         logger.info("Graphic_End")
 
     def changeMode(self):
-        now_mode = self.mode
-        if self.mode == 0:
-            self.mode = 1 # 設定モードへ
-        elif self.mode == 1:
-            self.mode = 0 # 解錠モードへ
+        now_mode = self.thread.mode
+        if self.thread.mode == 0:
+            self.thread.mode = 1 # 設定モードへ
+        elif self.thread.mode == 1:
+            self.thread.mode = 0 # 解錠モードへ
 
         logger.info("Mode_Change:\t{}->{}".format(now_mode, self.mode))
-
 
     def update(self):
         """
@@ -147,6 +151,15 @@ class cv2graphic():
         """
         登録枠を表示
         """
+        # 説明文を表示
+        cv2.putText(img=self._show_img,
+                    text="Put object in the frame",
+                    org=(self.regi_frame[0], self.regi_frame[1]-5),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN,
+                    fontScale=1,
+                    color=(255, 255, 255),
+                    thickness=1,
+                    lineType=cv2.LINE_AA)
         cv2.rectangle(img=self._show_img,
                       pt1=(self.regi_frame[0], self.regi_frame[1]),
                       pt2=(self.regi_frame[2], self.regi_frame[3]),
@@ -159,89 +172,132 @@ class cv2graphic():
         """
         if self.mode == 0:
             mode_txt = "UNLOCK"
+            color = (0, 255, 0)
         elif self.mode == 1:
             mode_txt = "SETTING"
+            color = (255, 0, 0)
 
         cv2.putText(img=self._show_img,
                     text="MODE: "+mode_txt,
-                    org=(5, 15),
+                    org=(5, 25),
                     fontFace=cv2.FONT_HERSHEY_PLAIN,
-                    fontScale=1,
-                    color=(0, 255, 0),
-                    thickness=1,
+                    fontScale=2,
+                    color=color,
+                    thickness=2,
                     lineType=cv2.LINE_AA)
 
     def unlock(self):
         '''
         解錠モードのGUI
         '''
-        pass
+        no_show = False
+        status = self.thread.auth_status
+        if status == 50:
+            text = "Already set!!!"
+            org = (self.center[0]-110, self.center[1])
+            color = (0, 0, 255)
+        elif status == 2:
+            text = "Set!"
+            org = (self.center[0]-30, self.center[1])
+            color = (0, 255, 0)
+        elif status == 4:
+            text = "Open!!!"
+            org = (self.center[0]-60, self.center[1])
+            color = (0, 255, 0)
+        elif status == 51:
+            text = "Only One!!!"
+            org = (self.center[0]-90, self.center[1])
+            color = (0, 0, 255)
+        elif status == 10:
+            text = "Auth Failure"
+            org = (self.center[0]-100, self.center[1])
+            color = (0, 0, 255)
+        elif status == 1:
+            text = "{:.0f}".format(self.thread.timer)
+            org = (self.center[0], self.center[1])
+            color = (0, 255, 255)
+        else:
+            no_show = True
+
+        if not no_show:
+            cv2.putText(img=self._show_img,
+                        text=text,
+                        org=org,
+                        fontFace=cv2.FONT_HERSHEY_PLAIN,
+                        fontScale=2,
+                        color=color,
+                        thickness=2,
+                        lineType=cv2.LINE_AA)
+        self.keyInfo(self.thread.auth_key)
 
 
     def setting(self):
         '''
         設定モードのGUI
         '''
-        # 説明文を表示
-        cv2.putText(img=self._show_img,
-                    text="Put object in the frame",
-                    org=(self.regi_frame[0], self.regi_frame[1]-5),
-                    fontFace=cv2.FONT_HERSHEY_PLAIN,
-                    fontScale=1,
-                    color=(255, 255, 255),
-                    thickness=1,
-                    lineType=cv2.LINE_AA)
-        # カウンタの表示
-        # print(self.thread.key_status)
-        if self.thread.key_status == 50:
+        no_show = False
+        status = self.thread.reg_status
+        if status == 50:
             text = "Registered!!!"
             org = (self.center[0]-100, self.center[1])
             color = (0, 0, 255)
-        elif self.thread.key_status == 2:
+        elif status == 2:
             text = "Register!"
             org = (self.center[0]-90, self.center[1])
             color = (0, 255, 0)
-        elif self.thread.key_status == 4:
+        elif status == 4:
             text = "All Register!"
             org = (self.center[0]-100, self.center[1])
             color = (0, 255, 0)
-        elif self.thread.key_status == 51:
+        elif status == 51:
             text = "Only One!!!"
             org = (self.center[0]-90, self.center[1])
             color = (0, 0, 255)
-        else:
+        elif status == 1:
             text = "{:.0f}".format(self.thread.timer)
             org = (self.center[0], self.center[1])
             color = (0, 255, 255)
-        cv2.putText(img=self._show_img,
-                    text=text,
-                    org=org,
-                    fontFace=cv2.FONT_HERSHEY_PLAIN,
-                    fontScale=2,
-                    color=color,
-                    thickness=2,
-                    lineType=cv2.LINE_AA)
+        else:
+            no_show = True
+
+        if not no_show:
+            cv2.putText(img=self._show_img,
+                        text=text,
+                        org=org,
+                        fontFace=cv2.FONT_HERSHEY_PLAIN,
+                        fontScale=2,
+                        color=color,
+                        thickness=2,
+                        lineType=cv2.LINE_AA)
+        self.keyInfo(self.thread.new_key)
+
+    def keyInfo(self, key):
         # 登録されているキー情報
-        top_key = 35
+        if self.mode == 0:
+            color = (0, 255, 0)
+        if self.mode == 1:
+            color = (255, 0, 0)
+
+        top_key = 70
         for i in range(self.num_key):
             try:
-                key_idx = self.thread.regi_key["key{}".format(i)]
+                key_idx = key["key{}".format(i)]
             except:
                 break
             if key_idx == None:
-                regi_class = None
+                reg_class = None
             else:
-                regi_class = self.classes["names"][key_idx]
+                reg_class = self.classes["names"][key_idx]
 
             cv2.putText(img=self._show_img,
-                        text="Key: {}".format(regi_class),
+                        text="Key: {}".format(reg_class),
                         org=(5, top_key),
                         fontFace=cv2.FONT_HERSHEY_PLAIN,
-                        fontScale=1,
-                        color=(0, 255, 0),
+                        fontScale=2,
+                        color=color,
                         thickness=1,
                         lineType=cv2.LINE_AA)
-            top_key += 15
+            top_key += 30
 
 
     def close(self):
