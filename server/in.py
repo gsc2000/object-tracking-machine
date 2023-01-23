@@ -6,7 +6,7 @@ import time
 import bluetooth
 
 #PCのMACアドレス　configから設定したい
-address = "F4:5C:89:C4:C7:12"
+address = "A4:CF:99:6C:D4:65"
 port = 1
 sock = bluetooth.BluetoothSocket( bluetooth.RFCOMM )
 

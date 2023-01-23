@@ -5,7 +5,7 @@ import sys
 import bluetooth
 import time
 
-address = "B8:27:EB:CA:E1:27"
+address = "B8:27:EB:F9:EF:95"
 PORT = 1
 
 sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
