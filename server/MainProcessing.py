@@ -47,7 +47,7 @@ class MainProcessing(SubThread.SubThread):
         self.cap = GetImage.GetImage(config) # 画像取得
         self.ai = Inferencer.Object_detector() # AI処理
         self.control = Control.control(config) # 駆動制御
-        # self.bluetooth = Bluetooth.bluetooth() # ラズパイ通信用
+        self.bluetooth = Bluetooth.bluetooth() # ラズパイ通信用
         self.set_key = Key.Unlock(config, reg_frame)
         self.save_key = Key.Savekey(config, reg_frame)
 
@@ -82,7 +82,7 @@ class MainProcessing(SubThread.SubThread):
                 dc = self.control.run(center_pix, num_human_det)
 
             # ラズパイにbluetoothでduty比を送信する
-            # self.bluetooth.send(dc)
+            self.bluetooth.send(dc)
 
             self.fps = (time.time()-st_time)**-1
             # logger.info("App_FPS:\t{:.2f}".format(self.fps))
