@@ -57,7 +57,7 @@ while( True ):
     sock_client.close()
     break
 
-  except sock.error:
+  except sock.timeout:
     sock.close()
     sock_client.close()
     print ("connection timed out!")
