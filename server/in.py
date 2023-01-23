@@ -28,6 +28,7 @@ while ( True ):
 
 while( True ):
   try:
+        print("受信待ち")
         data_ = sock_client.recv(16)
         # data  = data_.decode("UTF-8")
         data  = data_.decode()
@@ -56,7 +57,7 @@ while( True ):
     sock_client.close()
     break
 
-  except socket.error:
+  except sock.error:
     sock.close()
     sock_client.close()
     print ("connection timed out!")

@@ -18,11 +18,11 @@ try:
         a = input('1 から 5 までの数字を入力してください>>')
         if a.isdecimal() == True:
             if int(a) > 0 and int(a) < 6:
-                sock.send( str(a) )
+                sock.send( a.encode() )
                 print(a)
             else:
                 if int(a) == 6:
-                    sock.send( str(a) )
+                    sock.send( a.encode() )
                     print(a)
                     time.sleep(2)
                     break
