@@ -5,9 +5,9 @@ import sys
 import time
 import bluetooth
 
+#PCのMACアドレス　configから設定したい
 address = "F4:5C:89:C4:C7:12"
 port = 1
-
 sock = bluetooth.BluetoothSocket( bluetooth.RFCOMM )
 
 sock.bind( ( "", port ) )
@@ -58,7 +58,7 @@ while( True ):
   except socket.error:
     sock.close()
     sock_client.close()
-    print "connection timed out!"
+    print ("connection timed out!")
     break
 
   except:
