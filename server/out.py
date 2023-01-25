@@ -15,21 +15,9 @@ print('try before')
 
 try:
     while True:
-        a = input('1 から 5 までの数字を入力してください>>')
-        if a.isdecimal() == True:
-            if int(a) > 0 and int(a) < 6:
-                sock.send( a.encode() )
-                print(a)
-            else:
-                if int(a) == 6:
-                    sock.send( a.encode() )
-                    print(a)
-                    time.sleep(2)
-                    break
-                else:
-                    print('指定の数字ではありません')
-        else:
-            print('入力が数字ではありません')
-
+        a = bool(input('0:false 1:true'))
+        sock.send( a.encode() )
+        print(a)
+        time.sleep(2)
 except KeyboardInterrupt:
     sock.close()
