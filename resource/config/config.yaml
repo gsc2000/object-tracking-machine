@@ -2,6 +2,11 @@ LOG:
   DIR: "./log/"
   LEVEL: "DEBUG"
 
+LOGO:
+ PATH: "../resource/image/logo_GSMSOKTC.png"
+ SIZE_X: 80
+ SIZE_Y: 80
+
 CAMERA:
   ID: 0
   FPS: 30
@@ -9,7 +14,6 @@ CAMERA:
   SIZE_Y: 480
   RESIZE_X: 640
   RESIZE_Y: 480
-
   FULLSCREEN: False
 
 KEY:
@@ -17,3 +21,6 @@ KEY:
   NUM: 2
   COUNT: 3
   CLASS: "yolov5_module/data/coco128.yaml"
+
+DEVICE:
+ MAC:
