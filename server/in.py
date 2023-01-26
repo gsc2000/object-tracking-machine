@@ -51,6 +51,7 @@ while( True ):
         print("受信待ち")
         data_ = sock_client.recv(16)
         data  = int(data_.decode())
+        print(data)
         if data == 0:
           #少しずつ回転
           for degree in range(-90, 1):
@@ -68,7 +69,7 @@ while( True ):
           degree = 0
           dc = 2.5 + (12.0-2.5)/180*(degree+90) #角度をDutyCycleに変換
           #DutyCycle dc%
-          p.ChangeDutyCycle(dc)
+          lock.ChangeDutyCycle(dc)
           time.sleep(1)
           for degree in range(0, -91, -1):
             dc = 2.5 + (12.0-2.5)/180*(degree+90)
@@ -82,7 +83,7 @@ while( True ):
     sock_client.close()
     break
 
-  except:
-    sock.close()
-    sock_client.close()
-    break
+  # except:
+  #   sock.close()
+  #   sock_client.close()
+  #   break
