@@ -50,7 +50,7 @@ while( True ):
   try:
         print("受信待ち")
         data_ = sock_client.recv(16)
-        data  = data_.decode()
+        data  = int(data_.decode())
         if data == 0:
           #少しずつ回転
           for degree in range(-90, 0):

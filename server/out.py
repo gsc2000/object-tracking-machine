@@ -15,7 +15,7 @@ print('try before')
 
 try:
     while True:
-        int(a) = input('0:false 1:true')
+        a = input('0:false 1:true')
         sock.send( a.encode() )
         print(a)
         time.sleep(2)
