@@ -53,7 +53,7 @@ while( True ):
         data  = int(data_.decode())
         if data == 0:
           #少しずつ回転
-          for degree in range(-90, 0):
+          for degree in range(-90, 1):
             dc = 2.5 + (12.0-2.5)/180*(degree+90)
             cover.ChangeDutyCycle(dc)
             time.sleep(0.03)
@@ -70,7 +70,7 @@ while( True ):
           #DutyCycle dc%
           p.ChangeDutyCycle(dc)
           time.sleep(1)
-          for degree in range(0, -90):
+          for degree in range(0, -91, -1):
             dc = 2.5 + (12.0-2.5)/180*(degree+90)
             cover.ChangeDutyCycle(dc)
             time.sleep(0.03)
