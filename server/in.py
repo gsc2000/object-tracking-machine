@@ -22,8 +22,11 @@ for degree in range(-90, 0):
   cover.ChangeDutyCycle(dc)
   time.sleep(0.03)
   # cover.ChangeDutyCycle(0.0)#一旦DutyCycle0%にする
+cover.ChangeDutyCycle(0) #ノイズ対策、出力を0にする
 
 lock.ChangeDutyCycle(12) #初期degree=90[°]
+time.sleep(1) #回転が終わるのを待つ
+lock.ChangeDutyCycle(0) #ノイズ対策、出力を0にする
 
 #PCのMACアドレス　configから設定したい
 address = "A4:CF:99:6C:D4:65" #新しいMAC
@@ -59,11 +62,13 @@ while( True ):
             cover.ChangeDutyCycle(dc)
             time.sleep(0.03)
             # cover.ChangeDutyCycle(0.0)#一旦DutyCycle0%にする
+          cover.ChangeDutyCycle(0) #ノイズ対策、出力を0にする
           degree = 90
           dc = 2.5 + (12.0-2.5)/180*(degree+90) #角度をDutyCycleに変換
           #DutyCycle dc%
           lock.ChangeDutyCycle(dc)
           time.sleep(1)
+          lock.ChangeDutyCycle(0) #ノイズ対策、出力を0にする
           print("close")
         elif data == 1:
           degree = 0
@@ -71,11 +76,13 @@ while( True ):
           #DutyCycle dc%
           lock.ChangeDutyCycle(dc)
           time.sleep(1)
+          lock.ChangeDutyCycle(0) #ノイズ対策、出力を0にする
           for degree in range(0, -91, -1):
             dc = 2.5 + (12.0-2.5)/180*(degree+90)
             cover.ChangeDutyCycle(dc)
             time.sleep(0.03)
             # cover.ChangeDutyCycle(0.0)#一旦DutyCycle0%にする
+          cover.ChangeDutyCycle(0) #ノイズ対策、出力を0にする
           print("open")
 
   except KeyboardInterrupt:

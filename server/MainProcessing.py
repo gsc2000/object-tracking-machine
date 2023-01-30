@@ -69,11 +69,12 @@ class MainProcessing(SubThread.SubThread):
 
             # モータ制御を書く
             # logger.debug("Motor_Control")
-            if self.cnt % 5 == 0: #10回ごとにモーター制御を入れる
-                dc = self.control.run(center_pix, num_human_det)
+            # if self.cnt % 5 == 0: #10回ごとにモーター制御を入れる
+            #     dc = self.control.run(center_pix, num_human_det)
 
-            # ラズパイにbluetoothでduty比を送信する
-            # self.bluetooth.send(dc)
+            # ラズパイにbluetoothで"open"or"close"を送信する
+            lock_status = "0"
+            self.bluetooth.send(locl_status)
 
             self.cnt += 1 # 処理回数カウントUP 何かに使いそう
 
