@@ -16,12 +16,14 @@ class mybluetooth():
 
     def open_send(self):
         try:
-            self.sock.send(bytes(1))
+            key = "1"
+            self.sock.send(key.encode())
         except:
             self.sock.close()
 
     def close_send(self):
         try:
-            self.sock.send(bytes(0))
+            key = "0"
+            self.sock.send(key.encode())
         except:
             self.sock.close()
