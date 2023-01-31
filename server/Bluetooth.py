@@ -6,15 +6,22 @@ import bluetooth
 import time
 
 class bluetooth():
-    def __init__(self):
+    def __init__(self, mac):
         # ラズパイのMACアドレス　configから設定したい
-        self.address = "B8:27:EB:F9:EF:95"
+        self.address = mac
         self.PORT = 1
         self.sock=bluetooth.BluetoothSocket()
+        self.sock.connect((self.address, self.PORT))
         print('PG Start')
 
-    def send(self,lock_status):
-        self.sock.connect( ( self.address , self.PORT ) )
-        self.sock.send( locl_status.encode() )
-        self.sock.close()
-        return 'sent'
+    def open_send(self):
+        try:
+            self.sock.send(bytes(1))
+        except:
+            self.sock.close()
+
+    def close_send(self):
+        try:
+            self.sock.send(bytes(0))
+        except:
+            self.sock.close()

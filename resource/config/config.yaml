@@ -23,4 +23,4 @@ KEY:
   CLASS: "yolov5_module/data/coco128.yaml"
 
 DEVICE:
- MAC:
+ MAC: "B8:27:EB:F9:EF:95"

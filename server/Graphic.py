@@ -107,17 +107,20 @@ class cv2graphic():
 
             # GUI表示画像の更新
             cv2.imshow(self.win_name, self._show_img)
-            cv2.waitKey(10) # 0.1秒ごとに画面更新
+            key = cv2.waitKey(10) # 0.1秒ごとに画面更新
 
-            if keyboard.is_pressed("shift+s"):
+            # if keyboard.is_pressed("shift+s"):
+            if key == ord("s"):
                 self.changeMode()
                 time.sleep(0.5)
-            elif keyboard.is_pressed("l"):
+            # elif keyboard.is_pressed("l"):
+            elif key == ord("l"):
                 if self.mode == 0:
                     # lock
-                    self.thread.lock_io = True
+                    self.thread.close_io = True
                     pass
-            elif keyboard.is_pressed("esc"):
+            # elif keyboard.is_pressed("esc"):
+            elif key == 27:
                 self.close()
                 time.sleep(0.5)
 

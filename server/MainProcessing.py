@@ -36,7 +36,8 @@ class MainProcessing(SubThread.SubThread):
         self.pre_mode = None
         self.flg_change = False
         self.open_io = False # GUIからのLOCK要求受信用
-        self.lock_io = False # モータへのOPEN要求送信用
+        self.close_io = False # モータへのOPEN要求送信用
+        self.send_flg = False
 
         self.q_img = q_img # メインスレッドへ画像を渡すためのキュー
         self.lock = lock # 排他制御
@@ -49,7 +50,7 @@ class MainProcessing(SubThread.SubThread):
         self.cap = GetImage.GetImage(config) # 画像取得
         self.ai = Inferencer.Object_detector() # AI処理
         # self.control = Control.control(config) # 駆動制御
-        # self.bluetooth = Bluetooth.bluetooth() # ラズパイ通信用
+        self.bluetooth = Bluetooth.bluetooth() # ラズパイ通信用
         self.set_key = Key.Unlock(config, reg_frame)
         self.save_key = Key.Savekey(config, reg_frame)
 
@@ -62,7 +63,7 @@ class MainProcessing(SubThread.SubThread):
         self.reg_key: dict = self.save_key.reg_key
         self.lock.release()
         while self.running:
-            logger.debug(self.open_io)
+            # logger.debug(self.open_io)
             st_time = time.time()
             # キーの取得
             self.auth_key:dict = self.set_key.auth_key
@@ -79,18 +80,25 @@ class MainProcessing(SubThread.SubThread):
             # キー処理
             self.keyProc(obj)
 
-            # モータ制御を書く
-            # logger.debug("Motor_Control")
-            # if self.cnt % 5 == 0: #10回ごとにモーター制御を入れる
-            #     dc = self.control.run(center_pix, num_human_det)
+             # モータ制御を書く
+            if self.mode == 0 and self.auth_status == 4:
+                if not self.send_flg:
+                    self.bluetooth.open_send()
+                    self.send_flg = True
 
-            # ラズパイにbluetoothでduty比を送信する
-            # self.bluetooth.send(dc)
+            if self.send_flg:
+                if self.close_io:
+                    self.bluetooth.close_send()
+                    self.close_io = False
+                    self.send_flg = False
+
+            self.q_img.put(pred_img)
 
             self.cnt += 1 # 処理回数カウントUP 何かに使いそう
         logger.info("MainProcess_Thread_End")
 
     def keyProc(self, obj):
+        # 前回からモードが変更されているか確認
         if self.pre_mode == None:
             pass
         elif self.pre_mode == self.mode:
@@ -107,13 +115,8 @@ class MainProcessing(SubThread.SubThread):
         elif self.mode == 0:
             # キー認証処理
             self.timer, self.auth_status = self.set_key.run(self.flg_change, obj, self.reg_key)
-            if self.auth_status == 4: # 認証成功
-                if not self.lock_io: # Lock要求がなければ
-                    self.open_io = True # Open信号
-                else:
-                    self.open_io = False
-                    self.lock_io = False
-                    self.set_key.init()
+            # if self.auth_status == 4: # 認証成功
+            #     return 1
 
     def close(self):
         '''
