@@ -13,8 +13,8 @@ class bluetooth():
         self.sock=bluetooth.BluetoothSocket()
         print('PG Start')
 
-    def send(self,dc):
+    def send(self,lock_status):
         self.sock.connect( ( self.address , self.PORT ) )
-        self.sock.send( dc.encode() )
+        self.sock.send( locl_status.encode() )
         self.sock.close()
         return 'sent'

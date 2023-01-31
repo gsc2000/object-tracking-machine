@@ -80,17 +80,12 @@ class MainProcessing(SubThread.SubThread):
             self.keyProc(obj)
 
             # モータ制御を書く
+            # logger.debug("Motor_Control")
             # if self.cnt % 5 == 0: #10回ごとにモーター制御を入れる
             #     dc = self.control.run(center_pix, num_human_det)
 
             # ラズパイにbluetoothでduty比を送信する
             # self.bluetooth.send(dc)
-
-            self.fps = (time.time()-st_time)**-1
-            # logger.info("App_FPS:\t{:.2f}".format(self.fps))
-
-            # GUI表示画像書き換え処理
-            self.q_img.put(pred_img)
 
             self.cnt += 1 # 処理回数カウントUP 何かに使いそう
         logger.info("MainProcess_Thread_End")
