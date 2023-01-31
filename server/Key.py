@@ -191,11 +191,12 @@ class Unlock():
 
     def init(self):
         self.status = None
+        # logger.debug(self.status)
 
     def run(self, flg: bool, det: list, reg_key: dict):
         # if flg:
         #     self.init()
-        # logger.debug(self.status)
+        logger.debug(self.status)
         if self.status == None: # 認証処理前
             self.keyReset()
             self.status = 0 # キー認証待ちへ変更

@@ -50,7 +50,7 @@ class MainProcessing(SubThread.SubThread):
         self.cap = GetImage.GetImage(config) # 画像取得
         self.ai = Inferencer.Object_detector() # AI処理
         # self.control = Control.control(config) # 駆動制御
-        self.bluetooth = Bluetooth.mybluetooth(mac) # ラズパイ通信用
+        # self.bluetooth = Bluetooth.mybluetooth(mac) # ラズパイ通信用
         self.set_key = Key.Unlock(config, reg_frame)
         self.save_key = Key.Savekey(config, reg_frame)
 
@@ -80,19 +80,6 @@ class MainProcessing(SubThread.SubThread):
             # キー処理
             self.keyProc(obj)
 
-             # モータ制御を書く
-            if self.mode == 0 and self.auth_status == 4:
-                if not self.send_flg:
-                    self.bluetooth.open_send()
-                    self.send_flg = True
-
-            if self.send_flg:
-                if self.close_io:
-                    self.bluetooth.close_send()
-                    self.close_io = False
-                    self.send_flg = False
-                    self.save_key.init()
-
             self.q_img.put(pred_img)
 
             self.cnt += 1 # 処理回数カウントUP 何かに使いそう
@@ -116,8 +103,21 @@ class MainProcessing(SubThread.SubThread):
         elif self.mode == 0:
             # キー認証処理
             self.timer, self.auth_status = self.set_key.run(self.flg_change, obj, self.reg_key)
-            # if self.auth_status == 4: # 認証成功
-            #     return 1
+            # print(self.auth_status)
+            # モータ制御を書く
+            if self.mode == 0 and self.auth_status == 4:
+                if not self.send_flg:
+                    self.bluetooth.open_send()
+                    logger.debug("Open_send")
+                    self.send_flg = True
+
+            if self.send_flg:
+                if self.close_io:
+                    self.bluetooth.close_send()
+                    logger.debug("Close_send")
+                    self.close_io = False
+                    self.send_flg = False
+                    self.set_key.init()
 
     def close(self):
         '''
