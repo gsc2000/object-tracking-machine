@@ -116,7 +116,7 @@ class cv2graphic():
             # elif keyboard.is_pressed("l"):
             elif key == ord("l"):
                 if self.mode == 0:
-                    if self.thread.auth_status == 4:
+                    if self.thread.auth_status == 4 or self.thread.auth_status == 99:
                         self.thread.close_io = True
                     pass
             # elif keyboard.is_pressed("esc"):
@@ -129,7 +129,7 @@ class cv2graphic():
     def changeMode(self):
         now_mode = self.thread.mode
         if self.thread.mode == 0:
-            if self.thread.auth_status == 4:
+            if self.thread.auth_status == 4 or self.thread.auth_status == 99:
                 self.thread.mode = 1 # 設定モードへ
         elif self.thread.mode == 1:
             self.thread.mode = 0 # 解錠モードへ

@@ -231,6 +231,8 @@ class Unlock():
                 pass
             else:
                 self.status = None # 認証処理前に戻す
+        elif self.status == 99:
+            pass
 
         return self.timer, self.status
 
