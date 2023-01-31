@@ -50,9 +50,11 @@ class MainProcessing(SubThread.SubThread):
         self.cap = GetImage.GetImage(config) # 画像取得
         self.ai = Inferencer.Object_detector() # AI処理
         # self.control = Control.control(config) # 駆動制御
-        self.bluetooth = Bluetooth.mybluetooth(mac) # ラズパイ通信用
+        # self.bluetooth = Bluetooth.mybluetooth(mac) # ラズパイ通信用
         self.set_key = Key.Unlock(config, reg_frame)
         self.save_key = Key.Savekey(config, reg_frame)
+
+        self.set_key.status = 4
 
         self.running = True # 処理ループ
 
@@ -107,13 +109,13 @@ class MainProcessing(SubThread.SubThread):
             # モータ制御を書く
             if self.mode == 0 and self.auth_status == 4:
                 if not self.send_flg:
-                    self.bluetooth.open_send()
+                    # self.bluetooth.open_send()
                     logger.debug("Open_send")
                     self.send_flg = True
 
             if self.send_flg:
                 if self.close_io:
-                    self.bluetooth.close_send()
+                    # self.bluetooth.close_send()
                     logger.debug("Close_send")
                     self.close_io = False
                     self.send_flg = False
