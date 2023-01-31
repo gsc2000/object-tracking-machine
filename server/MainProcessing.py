@@ -50,7 +50,7 @@ class MainProcessing(SubThread.SubThread):
         self.cap = GetImage.GetImage(config) # 画像取得
         self.ai = Inferencer.Object_detector() # AI処理
         # self.control = Control.control(config) # 駆動制御
-        # self.bluetooth = Bluetooth.mybluetooth(mac) # ラズパイ通信用
+        self.bluetooth = Bluetooth.mybluetooth(mac) # ラズパイ通信用
         self.set_key = Key.Unlock(config, reg_frame)
         self.save_key = Key.Savekey(config, reg_frame)
 
