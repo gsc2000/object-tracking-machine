@@ -91,6 +91,7 @@ class MainProcessing(SubThread.SubThread):
                     self.bluetooth.close_send()
                     self.close_io = False
                     self.send_flg = False
+                    self.save_key.init()
 
             self.q_img.put(pred_img)
 
