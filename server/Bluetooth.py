@@ -5,7 +5,7 @@ import sys
 import bluetooth
 import time
 
-class bluetooth():
+class mybluetooth():
     def __init__(self, mac):
         # ラズパイのMACアドレス　configから設定したい
         self.address = mac
