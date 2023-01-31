@@ -16,17 +16,19 @@ cover = GPIO.PWM(21, 50) #GPIO21をPWM設定、周波数は50Hz
 lock.start(0.0) #Duty Cycle 0%
 cover.start(0.0) #Duty Cycle 0%
 
-#少しずつ回転
-for degree in range(-90, 0):
+degree = 0
+dc = 2.5 + (12.0-2.5)/180*(degree+90) #角度をDutyCycleに変換
+#DutyCycle dc%
+lock.ChangeDutyCycle(dc)
+time.sleep(1)
+lock.ChangeDutyCycle(0) #ノイズ対策、出力を0にする
+for degree in range(0, -91, -1):
   dc = 2.5 + (12.0-2.5)/180*(degree+90)
   cover.ChangeDutyCycle(dc)
   time.sleep(0.03)
   # cover.ChangeDutyCycle(0.0)#一旦DutyCycle0%にする
 cover.ChangeDutyCycle(0) #ノイズ対策、出力を0にする
-
-lock.ChangeDutyCycle(12) #初期degree=90[°]
-time.sleep(1) #回転が終わるのを待つ
-lock.ChangeDutyCycle(0) #ノイズ対策、出力を0にする
+print("open")
 
 #PCのMACアドレス　configから設定したい
 address = "A4:CF:99:6C:D4:65" #新しいMAC
